@@ -6,8 +6,8 @@ Python Flask framework (routes, GET parameters) as well as
 common security vulnerabilities, such as XSS and SQLi.
 """
 
-import sqlite3
 from flask import Flask, current_app, request
+from flask_mysqldb import MySQL
 
 app = Flask(__name__)
 
@@ -15,16 +15,23 @@ app = Flask(__name__)
 SITE_NAME = 'noople'
 DB_PATH = 'instance/database.db'
 
+app.config['MYSQL_HOST'] = 'localhost'
+app.config['MYSQL_USER'] = 'noople'
+app.config['MYSQL_PASSWORD'] = '12345678'
+app.config['MYSQL_DB'] = 'noople'
+
+mysql = MySQL(app)
+
 
 def check_db():
     """Creates a database if none is present."""
-    try:
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        cursor.execute("SELECT id FROM query LIMIT 1;")
-        conn.close()
-    except:
-        init_db()
+    cursor = mysql.connection.cursor()
+    cursor.execute("SELECT id FROM query LIMIT 1;")
+#    try:
+#        cursor = mysql.connection.cursor()
+#        cursor.execute("SELECT id FROM query LIMIT 1;")
+#    except:
+#        init_db()
 
 
 def insert_query(search_query=None):
@@ -35,17 +42,12 @@ def insert_query(search_query=None):
     """
     if not search_query:
         return
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
+    cursor = mysql.connection.cursor()
 
     # Insert a row of data
-    cursor.executescript("INSERT INTO query VALUES (NULL, '" + search_query + "');")
-
-    # Save (commit) the changes
-    conn.commit()
-
-    # We can also close the connection if we are done with it.
-    conn.close()
+    cursor.execute("INSERT INTO query (search) VALUES ('" + search_query + "');")
+    mysql.connection.commit()
+    cursor.close()
 
 
 def select_recent_queries(max_rows=5):
@@ -54,8 +56,7 @@ def select_recent_queries(max_rows=5):
     Keyword argument:
     max_rows -- the number of rows to return
     """
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
+    cursor = mysql.connection.cursor()
 
     # Insert a row of data
     cursor.execute("""SELECT search
@@ -64,9 +65,6 @@ def select_recent_queries(max_rows=5):
                       LIMIT """ + str(max_rows) + ";")
 
     results = cursor.fetchall()
-
-    # We can also close the connection if we are done with it.
-    conn.close()
 
     return results
 
@@ -152,15 +150,10 @@ def init_db():
     Drops and recreates the query table
     """
     # Open connection to the database
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
+    cursor = mysql.connection.cursor()
+
 
     # Open the schema file and execute its SQL code
     with current_app.open_resource('schema.sql') as db_schema:
-        cursor.executescript(db_schema.read().decode('utf8'))
+        cursor.execute(db_schema.read().decode('utf8'))
 
-    # Save (commit) the changes
-    conn.commit()
-
-    # We can also close the connection if we are done with it.
-    conn.close()
