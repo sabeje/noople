@@ -1,7 +1,22 @@
-DROP TABLE IF EXISTS query;
+DELIMITER $$
+USE noople $$
+DROP TABLE IF EXISTS query $$
+CREATE TABLE query (id INTEGER PRIMARY KEY AUTO_INCREMENT, search TEXT) $$
 
-CREATE TABLE query (
-  id INTEGER PRIMARY KEY AUTO_INCREMENT,
-  search TEXT
-);
-
+DROP PROCEDURE IF EXISTS add_query $$
+CREATE PROCEDURE add_query(IN search TEXT)
+BEGIN
+  INSERT INTO query
+  (search)
+  VALUES
+  (search);
+END$$
+DROP PROCEDURE IF EXISTS select_n $$
+CREATE PROCEDURE select_n(IN max INT)
+BEGIN
+  SELECT search
+  FROM query
+  ORDER BY id DESC
+  LIMIT max;
+END$$
+DELIMITER ;

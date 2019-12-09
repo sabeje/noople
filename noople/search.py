@@ -25,13 +25,12 @@ mysql = MySQL(app)
 
 def check_db():
     """Creates a database if none is present."""
-    cursor = mysql.connection.cursor()
-    cursor.execute("SELECT id FROM query LIMIT 1;")
-#    try:
-#        cursor = mysql.connection.cursor()
-#        cursor.execute("SELECT id FROM query LIMIT 1;")
-#    except:
-#        init_db()
+    try:
+        cursor = mysql.connection.cursor()
+        cursor.callproc('select_n', [1])
+        cursor.close()
+    except:
+        init_db()
 
 
 def insert_query(search_query=None):
@@ -58,13 +57,10 @@ def select_recent_queries(max_rows=5):
     """
     cursor = mysql.connection.cursor()
 
-    # Insert a row of data
-    cursor.execute("""SELECT search
-                      FROM query
-                      ORDER BY id DESC
-                      LIMIT """ + str(max_rows) + ";")
-
+    # Select n previous search queries
+    cursor.callproc('select_n', [max_rows])
     results = cursor.fetchall()
+    cursor.close()
 
     return results
 
@@ -133,12 +129,15 @@ def init():
 
     Calls init and returns user to the main page.
     """
+    init_db()
     try:
         init_db()
     except:
         return '''<h1>An error occurred.</h1>
-                  <p>An error occurred while initializing
-                  the database. Try again?</p>'''
+                  <p>An error occurred while resetting
+                  the database. Try again?</p>
+                  <p>You may need to re-run the
+                  schema.sql file.</p>'''
 
     return '''<h1>Database initialized.</h1>
               <p>Return to the <a href="/">main page</a>.</p>'''
@@ -147,13 +146,10 @@ def init():
 def init_db():
     """Initialize database
 
-    Drops and recreates the query table
+    Truncates the query table
     """
     # Open connection to the database
     cursor = mysql.connection.cursor()
-
-
-    # Open the schema file and execute its SQL code
-    with current_app.open_resource('schema.sql') as db_schema:
-        cursor.execute(db_schema.read().decode('utf8'))
+    cursor.execute('TRUNCATE query;')
+    cursor.close()
 

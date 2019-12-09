@@ -27,15 +27,9 @@ noople can be used to demonstrate:
     GRANT ALL on noople.* TO 'noople'@'localhost';
     exit
 
-### Create stored procedures
+### Create table, stored procedures
 
-    DELIMITER $$
-    DROP PROCEDURE IF EXISTS add_query $$
-    CREATE PROCEDURE add_query(IN search TEXT)
-    BEGIN
-      INSERT INTO query (search) VALUES (search);
-    END$$
-    DELIMITER ;
+    cat noople/schema.sql | mysql -u noople -p
 
 ## Run the application
 
