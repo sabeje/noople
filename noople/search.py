@@ -45,7 +45,7 @@ def insert_query(search_query=None):
     cursor = mysql.connection.cursor()
 
     # Insert a row of data
-    cursor.execute("INSERT INTO query (search) VALUES ('" + search_query + "');")
+    cursor.callproc('add_query', [search_query])
     mysql.connection.commit()
     cursor.close()
 
