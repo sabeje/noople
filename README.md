@@ -12,6 +12,21 @@ noople can be used to demonstrate:
 * Stored XSS vulnerabilities
 * SQL injection vulnerabilities
 
+## Setting up the database
+
+### Install prerequisite packages:
+
+    sudo apt install libmariadbclient18 libmysqlclient-dev mysql-client \
+                     mysql-server python-mysqldb
+
+### Create database, user
+
+    sudo mysql -u root
+    CREATE USER 'noople'@'localhost' IDENTIFIED BY '12345678';
+    CREATE DATABASE noople;
+    GRANT ALL on noople.* TO 'noople'@'localhost';
+    exit
+
 ## Run the application
 
 Create a Python virtual environment, if you haven't already:
